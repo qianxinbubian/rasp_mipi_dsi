@@ -126,6 +126,17 @@
 			status = "disabled";
 		};
 	};
+
+	fragment@6 {
+		target = <&gpio>;
+		__overlay__ {
+            dsi1_panel_pins: dsi1_panel_pins {
+                brcm,pins = <25 17>;
+                brcm,function = <1 1>;
+                brcm,pull = <1 0>;
+            };
+		};
+	};
     /*
 	 *fragment@6 {
 	 *    target-path = "/";
