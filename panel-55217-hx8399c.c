@@ -62,7 +62,10 @@ static void hx8399c_55217_init_sequence(struct hx8399c_55217 *hx8399c_55217) {
     mdelay(20);
     gpiod_set_value(hx8399c_55217->reset_gpio, 1);
     mdelay(150);
-
+	
+    mipi_dsi_dcs_soft_reset(rpi_dsi_panel->dsi);
+    msleep(30);
+	
     /* 6.3.7 SETEXTC: Set extension command (B9h)  Enable Extended Command Set Access*/
     hx8399c_55217_command(hx8399c_55217, HX8399_CMD_SETEXTC,
         0xff, 0x83, 0x99);
@@ -187,11 +190,11 @@ static int hx8399c_55217_prepare(struct drm_panel *panel) {
   struct hx8399c_55217 *hx8399c_55217 = panel_to_hx8399c_55217(panel);
 
   gpiod_set_value(hx8399c_55217->enable_gpio, 1);
-  msleep(50);
+  msleep(1);
+  gpiod_set_value(hx8399c_55217->enable_gpio, 1);
+  msleep(10);
   gpiod_set_value(hx8399c_55217->reset_gpio, 0);
-  msleep(50);
-  gpiod_set_value(hx8399c_55217->reset_gpio, 1);
-  msleep(150);
+  msleep(180);
   mipi_dsi_dcs_soft_reset(hx8399c_55217->dsi);
 
   msleep(5);
@@ -343,7 +346,7 @@ static void hx8399c_55217_dsi_remove(struct mipi_dsi_device *dsi) {
 }
 
 static const struct of_device_id hx8399c_55217_of_match[] = {
-    {.compatible = "wlk,hx8399c_55217", .data = &hx8399c_55217_desc}, {}};
+    {.compatible = "beilijia,screen55217", .data = &hx8399c_55217_desc}, {}};
 MODULE_DEVICE_TABLE(of, hx8399c_55217_of_match);
 
 static struct mipi_dsi_driver hx8399c_55217_dsi_driver = {
@@ -832,7 +835,7 @@ static int hx8399c_probe(struct mipi_dsi_device* dsi)
         return -ENODEV;
     }
 */
-// ˜›Æ≈…√ª≈‰÷√endpoint
+//√ä√∑√ù¬Æ√Ö√â√É¬ª√Ö√§√ñ√Éendpoint
 
     dev_info(dev, "%s+\n", __func__);
     ctx = devm_kzalloc(dev, sizeof(struct hx8399c), GFP_KERNEL);
