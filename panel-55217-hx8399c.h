@@ -43,26 +43,28 @@
 /* enable Readback support on panel" */
 /* #define PANEL_SUPPORT_READBACK */
 
-#define HFP (50) // horizontal frontporch
-#define HSA (50) // horizontal sync active
-#define HBP (50) // horizontal backporch
-#define VFP (9) // vertical frontporch
+#define HFP (32) // horizontal frontporch
+#define HSA (32) // horizontal sync active
+#define HBP (32) // horizontal backporch
+#define VFP (15) // vertical frontporch
 #define VSA (4) // vertical sync active
-#define VBP (3) // vertical backporch
+#define VBP (12) // vertical backporch
 #define VAC (1920) // vertical resolution
 #define HAC (1080) // hoeizontal resolution
-
-static struct drm_display_mode default_mode = {
-        .clock = ((HAC + HFP + HSA + HBP) * (VAC + VFP + VSA + VBP) * 60)/1000, // 153538, //156672,//htotal*vtotal*vrefresh/1000   163943   182495
-        .hdisplay = HAC,
-        .hsync_start = HAC + HFP,
-        .hsync_end = HAC + HFP + HSA,
-        .htotal = HAC + HFP + HSA + HBP,
-        .vdisplay = VAC,
-        .vsync_start = VAC + VFP,
-        .vsync_end = VAC + VFP + VSA,
-        .vtotal = VAC + VFP + VSA + VBP,
-};
+/*
+ *
+ *static struct drm_display_mode default_mode = {
+ *        .clock = ((HAC + HFP + HSA + HBP) * (VAC + VFP + VSA + VBP) * 60)/1000, // 153538, //156672,//htotal*vtotal*vrefresh/1000   163943   182495
+ *        .hdisplay = HAC,
+ *        .hsync_start = HAC + HFP,
+ *        .hsync_end = HAC + HFP + HSA,
+ *        .htotal = HAC + HFP + HSA + HBP,
+ *        .vdisplay = VAC,
+ *        .vsync_start = VAC + VFP,
+ *        .vsync_end = VAC + VFP + VSA,
+ *        .vtotal = VAC + VFP + VSA + VBP,
+ *};
+ */
 
 
 #endif	/* __PANEL_HX8399C_H__ */
