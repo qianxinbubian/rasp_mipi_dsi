@@ -29,6 +29,7 @@
                 vc4_dsi       = <&dsi1>;
                 reset-gpios   = <&gpio 25 0>;
                 enable-gpios  = <&gpio 17 0>;
+                dcdc-gpios    = <&gpio 10 0>;
 				port {
 					panel_dsi_port: endpoint {
 						remote-endpoint = <&dsi_out_port>;
@@ -42,9 +43,9 @@
 		target = <&gpio>;
 		__overlay__ {
 			dsi1_panel_pins: dsi1_panel_pins{
-				brcm,pins = <25 17 >;
-				brcm,function = <1 1>; // out
-				brcm,pull = <1 1>; // off
+				brcm,pins = <25 17 10>;
+				brcm,function = <1 1 1>; // out
+				brcm,pull = <1 1 1>; // off
 			};
 		};
 
@@ -57,6 +58,46 @@
 			status = "okay";
 		};
 	};
+    fragment@3 {
+        target = <&i2c0>;
+        __overlay__{
+            status = "okay";
+            #address-cells = <1>;
+            #size-cells = <0>;
+
+            gt911: gt911@14 {
+                compatible = "goodix,gt911";
+                reg = <0x14>;
+                pinctrl-names = "default";
+                pinctrl-0 = <&goodix_pins>;
+                interrupt-parent = <&gpio>;
+                interrupts = <20 2>; // high-to-low edge triggered
+                /*interrupt-controller;*/
+                irq-gpios = <&gpio 20 0>;
+                reset-gpios = <&gpio 21 0>;
+                status        = "okay";
+            };
+        };
+    };
+
+	fragment@4 {
+		target = <&gpio>;
+		__overlay__ {
+			goodix_pins: goodix_pins{
+				brcm,pins = <20 21>;
+				brcm,function = <0 1>; // out
+				brcm,pull = <2 1>; // off
+			};
+		};
+
+	};
+
+    fragment@5 {
+        target = <&i2c0mux>;
+        __overlay__ {
+            pinctrl-0 = <&i2c0_gpio44>;
+        };
+    };
 };
  
 

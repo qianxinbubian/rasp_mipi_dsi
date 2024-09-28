@@ -38,6 +38,7 @@ struct hx8399c_55217 {
   const struct hx8399c_55217_panel_desc *desc;
   struct gpio_desc *reset_gpio;
   struct gpio_desc *enable_gpio;
+  struct gpio_desc *dcdc_gpio;
 };
 
 static const struct drm_display_mode hx8399c_55217_mode = {
@@ -73,7 +74,8 @@ static const struct drm_display_mode hx8399c_55217_mode = {
 static const struct hx8399c_55217_panel_desc hx8399c_55217_desc = {
     .mode = &hx8399c_55217_mode,
     .lanes = 4,
-    .flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_VIDEO_SYNC_PULSE,
+    .flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_VIDEO_SYNC_PULSE
+            |MIPI_DSI_CLOCK_NON_CONTINUOUS,
     .format = MIPI_DSI_FMT_RGB888,
 };
 
@@ -243,6 +245,7 @@ static int hx8399c_55217_prepare(struct drm_panel *panel) {
     /*gpiod_set_value(hx8399c_55217->reset_gpio, 1);*/
     /*msleep(1);*/
     gpiod_set_value(hx8399c_55217->enable_gpio, 1);
+    gpiod_set_value(hx8399c_55217->dcdc_gpio, 1);
     /*msleep(10);*/
     /*gpiod_set_value(hx8399c_55217->reset_gpio, 0);*/
     /*msleep(180);*/
@@ -250,12 +253,7 @@ static int hx8399c_55217_prepare(struct drm_panel *panel) {
 
     /*msleep(5);*/
 
-    /*hx8399c_55217->dsi->lanes = 1;*/
-    /*hx8399c_55217->dsi->mode_flags = MIPI_DSI_MODE_LPM;*/
     hx8399c_55217_init_sequence(hx8399c_55217);
-    /*hx8399c_55217->dsi->mode_flags = desc->flags;*/
-    /*hx8399c_55217->dsi->format = desc->format;*/
-    /*hx8399c_55217->dsi->lanes = desc->lanes;*/
 
     mipi_dsi_dcs_set_tear_on(hx8399c_55217->dsi, MIPI_DSI_DCS_TEAR_MODE_VBLANK);
     mipi_dsi_dcs_exit_sleep_mode(hx8399c_55217->dsi);
@@ -276,6 +274,7 @@ static int hx8399c_55217_unprepare(struct drm_panel *panel) {
     mipi_dsi_dcs_enter_sleep_mode(hx8399c_55217->dsi);
 
     gpiod_set_value(hx8399c_55217->enable_gpio, 0);
+    gpiod_set_value(hx8399c_55217->dcdc_gpio, 0);
     gpiod_set_value(hx8399c_55217->reset_gpio, 0);
 
     return 0;
@@ -319,14 +318,20 @@ static int hx8399c_55217_dsi_probe(struct mipi_dsi_device *dsi) {
         return -ENOMEM;
 
     struct hx8399c_55217_panel_desc *desc = of_device_get_match_data(&dsi->dev);
-    dsi->mode_flags = desc->flags;
-    dsi->format = desc->format;
-    dsi->lanes = desc->lanes;
+    dsi->mode_flags = hx8399c_55217_desc.flags;
+    dsi->format = hx8399c_55217_desc.format;
+    dsi->lanes = hx8399c_55217_desc.lanes;
 
     hx8399c_55217->reset_gpio = devm_gpiod_get(&dsi->dev, "reset", GPIOD_OUT_LOW);
     if (IS_ERR(hx8399c_55217->reset_gpio)) {
         dev_err(&dsi->dev, "Couldn't get our reset GPIO\n");
         return PTR_ERR(hx8399c_55217->reset_gpio);
+    }
+
+    hx8399c_55217->dcdc_gpio = devm_gpiod_get(&dsi->dev, "dcdc", GPIOD_OUT_HIGH);
+    if (IS_ERR(hx8399c_55217->dcdc_gpio)) {
+        dev_err(&dsi->dev, "Couldn't get our dcdc GPIO\n");
+        return PTR_ERR(hx8399c_55217->dcdc_gpio);
     }
 
     hx8399c_55217->enable_gpio = devm_gpiod_get(&dsi->dev, "enable", GPIOD_OUT_HIGH);
@@ -339,13 +344,15 @@ static int hx8399c_55217_dsi_probe(struct mipi_dsi_device *dsi) {
     drm_panel_init(&hx8399c_55217->panel, &dsi->dev, &hx8399c_55217_funcs,
             DRM_MODE_CONNECTOR_DSI);
 
-    ret = drm_panel_of_backlight(&hx8399c_55217->panel);
-    if (ret) 
-    {
-        dev_err(&dsi->dev, "Couldn't get drm_panel_of_backlight\n");
-        /*return PTR_ERR(ret);*/
-        return ret;
-    }
+    /*
+     *ret = drm_panel_of_backlight(&hx8399c_55217->panel);
+     *if (ret) 
+     *{
+     *    dev_err(&dsi->dev, "Couldn't get drm_panel_of_backlight\n");
+     *    [>return PTR_ERR(ret);<]
+     *    return ret;
+     *}
+     */
 
     drm_panel_add(&hx8399c_55217->panel);
 
