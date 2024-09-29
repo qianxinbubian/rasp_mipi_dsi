@@ -43,12 +43,20 @@
 /* enable Readback support on panel" */
 /* #define PANEL_SUPPORT_READBACK */
 
-#define HFP (32) // horizontal frontporch
-#define HSA (32) // horizontal sync active
-#define HBP (32) // horizontal backporch
-#define VFP (15) // vertical frontporch
+/*
+ *#define HFP (32) // horizontal frontporch
+ *#define HSA (32) // horizontal sync active
+ *#define HBP (32) // horizontal backporch
+ *#define VFP (15) // vertical frontporch
+ *#define VSA (4) // vertical sync active
+ *#define VBP (12) // vertical backporch
+ */
+#define HFP (50) // horizontal frontporch
+#define HSA (50) // horizontal sync active
+#define HBP (50) // horizontal backporch
+#define VFP (9) // vertical frontporch
 #define VSA (4) // vertical sync active
-#define VBP (12) // vertical backporch
+#define VBP (3) // vertical backporch
 #define VAC (1920) // vertical resolution
 #define HAC (1080) // hoeizontal resolution
 /*

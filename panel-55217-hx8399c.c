@@ -26,23 +26,24 @@
 #include "panel-55217-hx8399c.h"
 
 struct hx8399c_55217_panel_desc {
-  const struct drm_display_mode *mode;
-  unsigned int lanes;
-  unsigned long flags;
-  enum mipi_dsi_pixel_format format;
+    const struct drm_display_mode *mode;
+    unsigned int lanes;
+    unsigned long flags;
+    enum mipi_dsi_pixel_format format;
 };
 
 struct hx8399c_55217 {
-  struct drm_panel panel;
-  struct mipi_dsi_device *dsi;
-  const struct hx8399c_55217_panel_desc *desc;
-  struct gpio_desc *reset_gpio;
-  struct gpio_desc *enable_gpio;
-  struct gpio_desc *dcdc_gpio;
+    struct drm_panel panel;
+    struct mipi_dsi_device *dsi;
+    const struct hx8399c_55217_panel_desc *desc;
+    /*struct backlight_device* backlight;*/
+    struct gpio_desc *reset_gpio;
+    struct gpio_desc *enable_gpio;
+    struct gpio_desc *dcdc_gpio;
 };
 
 static const struct drm_display_mode hx8399c_55217_mode = {
-        .clock = ((HAC + HFP + HSA + HBP) * (VAC + VFP + VSA + VBP) * 60)/1000, // 153538, //156672,//htotal*vtotal*vrefresh/1000   163943   182495
+        .clock = ((HAC + HFP + HSA + HBP) * (VAC + VFP + VSA + VBP) * 60 )/1000, // 153538, //156672,//htotal*vtotal*vrefresh/1000   163943   182495
         .hdisplay = HAC,
         .hsync_start = HAC + HFP,
         .hsync_end = HAC + HFP + HSA,
@@ -51,19 +52,6 @@ static const struct drm_display_mode hx8399c_55217_mode = {
         .vsync_start = VAC + VFP,
         .vsync_end = VAC + VFP + VSA,
         .vtotal = VAC + VFP + VSA + VBP,
-/*
- *    .clock = 25000,
- *
- *    .hdisplay = 480,
- *    .hsync_start = 480 + [> HFP <] 10,
- *    .hsync_end = 480 + 10 + [> HSync <] 4,
- *    .htotal = 480 + 10 + 4 + [> HBP <] 20,
- *
- *    .vdisplay = 640,
- *    .vsync_start = 640 + [> VFP <] 8,
- *    .vsync_end = 640 + 8 + [> VSync <] 4,
- *    .vtotal = 640 + 8 + 4 + [> VBP <] 14,
- */
 
     .width_mm = 68,
     .height_mm = 151,
@@ -74,8 +62,8 @@ static const struct drm_display_mode hx8399c_55217_mode = {
 static const struct hx8399c_55217_panel_desc hx8399c_55217_desc = {
     .mode = &hx8399c_55217_mode,
     .lanes = 4,
-    .flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_VIDEO_SYNC_PULSE
-            |MIPI_DSI_CLOCK_NON_CONTINUOUS,
+    .flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_LPM 
+            |MIPI_DSI_MODE_VIDEO_HSE ,
     .format = MIPI_DSI_FMT_RGB888,
 };
 
@@ -194,37 +182,30 @@ static void hx8399c_55217_init_sequence(struct hx8399c_55217 *hx8399c_55217) {
     hx8399c_55217_command(hx8399c_55217, HX8399_CMD_SETVCOM,
         0x8D, 0x8D);
 
-    /* 6.3.28 SETGAMMA: Set gamma curve related setting (E0h) */
-    hx8399c_55217_command(hx8399c_55217, HX8399_CMD_SETGAMMA,
- /*       0x00, 0x1F, 0x24, 0x27, 0x5F, 0x63, 0x78, 0x72,
-        0x7A, 0x86, 0x8C, 0x92, 0x98, 0x9F, 0xA7, 0xAA,
-        0xB1, 0xB8, 0xBC, 0xC8, 0xBD, 0xBF, 0xC4, 0x6B,
-        0x66, 0x72, 0x7D, 0x00, 0x1F, 0x24, 0x27, 0x5F,
-        0x63, 0x78, 0x72, 0x7A, 0x86, 0x8C, 0x92, 0x98,
-        0x9F, 0xA7, 0xAA, 0xB1, 0xB8, 0xBC, 0xC8, 0xBD,
-        0xBF, 0xC4, 0x6B, 0x66, 0x72, 0x77);
-*/
-
-	0x00, 0x0E, 0x19, 0x13, 0x2E, 0x39, 0x48, 0x44, 
-	0x4D, 0x57, 0x5F, 0x66, 0x6C, 0x76, 0x7F, 0x85, 
-	0x8A, 0x95, 0x9A, 0xA4, 0x9B, 0xAB, 0xB0, 0x5C, 
-	0x58, 0x64, 0x77, 0x00, 0x0E, 0x19, 0x13, 0x2E, 
-	0x39, 0x48, 0x44, 0x4D, 0x57, 0x5F, 0x66, 0x6C, 
-	0x76, 0x7F, 0x85, 0x8A, 0x95, 0x9A, 0xA4, 0x9B, 
-	0xAB, 0xB0, 0x5C, 0x58, 0x64, 0x77);
-    mdelay(5);
-
-    mdelay(5);
-
-
     /* 6.3.17 SETPANEL: Set Panel Related Register (CCh) */
     hx8399c_55217_command(hx8399c_55217, HX8399_CMD_SETPANEL,
         0x08);
 
-/*
-    hx8399c_55217_command(hx8399c_55217, HX8399_CMD_UNKNOWN2,
-        0xFF, 0xF9);
-*/
+    /* 6.3.28 SETGAMMA: Set gamma curve related setting (E0h) */
+    hx8399c_55217_command(hx8399c_55217, HX8399_CMD_SETGAMMA,
+        /*
+         *0x00, 0x1F, 0x24, 0x27, 0x5F, 0x63, 0x78, 0x72,
+         *0x7A, 0x86, 0x8C, 0x92, 0x98, 0x9F, 0xA7, 0xAA,
+         *0xB1, 0xB8, 0xBC, 0xC8, 0xBD, 0xBF, 0xC4, 0x6B,
+         *0x66, 0x72, 0x7D, 0x00, 0x1F, 0x24, 0x27, 0x5F,
+         *0x63, 0x78, 0x72, 0x7A, 0x86, 0x8C, 0x92, 0x98,
+         *0x9F, 0xA7, 0xAA, 0xB1, 0xB8, 0xBC, 0xC8, 0xBD,
+         *0xBF, 0xC4, 0x6B, 0x66, 0x72, 0x77);
+         */
+
+    0x00, 0x0E, 0x19, 0x13, 0x2E, 0x39, 0x48, 0x44, 
+    0x4D, 0x57, 0x5F, 0x66, 0x6C, 0x76, 0x7F, 0x85, 
+    0x8A, 0x95, 0x9A, 0xA4, 0x9B, 0xAB, 0xB0, 0x5C, 
+    0x58, 0x64, 0x77, 0x00, 0x0E, 0x19, 0x13, 0x2E, 
+    0x39, 0x48, 0x44, 0x4D, 0x57, 0x5F, 0x66, 0x6C, 
+    0x76, 0x7F, 0x85, 0x8A, 0x95, 0x9A, 0xA4, 0x9B, 
+    0xAB, 0xB0, 0x5C, 0x58, 0x64, 0x77);
+    /*mdelay(5);*/
 
     /* 6.3.10 Set register bank (BDh) */
     hx8399c_55217_command(hx8399c_55217, HX8399_CMD_SETREGBANK,
@@ -261,10 +242,28 @@ static int hx8399c_55217_prepare(struct drm_panel *panel) {
 }
 
 static int hx8399c_55217_enable(struct drm_panel *panel) {
+    struct hx8399c_55217 *hx8399c_55217 = panel_to_hx8399c_55217(panel);
+
+    /*
+     *if (hx8399c_55217->backlight) {
+     *    hx8399c_55217->backlight->props.power = FB_BLANK_UNBLANK;
+     *    backlight_update_status(hx8399c_55217->backlight);
+     *}
+     *backlight_enable(hx8399c_55217->backlight);
+     */
     return mipi_dsi_dcs_set_display_on(panel_to_hx8399c_55217(panel)->dsi);
 }
 
 static int hx8399c_55217_disable(struct drm_panel *panel) {
+    struct hx8399c_55217 *hx8399c_55217 = panel_to_hx8399c_55217(panel);
+
+    /*
+     *if (hx8399c_55217->backlight) {
+     *    hx8399c_55217->backlight->props.power = FB_BLANK_POWERDOWN;
+     *    backlight_update_status(hx8399c_55217->backlight);
+     *}
+     *backlight_disable(hx8399c_55217->backlight);
+     */
     return mipi_dsi_dcs_set_display_off(panel_to_hx8399c_55217(panel)->dsi);
 }
 
@@ -313,14 +312,15 @@ static const struct drm_panel_funcs hx8399c_55217_funcs = {
 
 static int hx8399c_55217_dsi_probe(struct mipi_dsi_device *dsi) {
     int ret;
+    /*struct device_node *backlight;*/
     struct hx8399c_55217 *hx8399c_55217 = devm_kzalloc(&dsi->dev, sizeof(*hx8399c_55217), GFP_KERNEL);
     if (!hx8399c_55217) 
         return -ENOMEM;
 
     struct hx8399c_55217_panel_desc *desc = of_device_get_match_data(&dsi->dev);
-    dsi->mode_flags = hx8399c_55217_desc.flags;
-    dsi->format = hx8399c_55217_desc.format;
     dsi->lanes = hx8399c_55217_desc.lanes;
+    dsi->format = hx8399c_55217_desc.format;
+    dsi->mode_flags = hx8399c_55217_desc.flags;
 
     hx8399c_55217->reset_gpio = devm_gpiod_get(&dsi->dev, "reset", GPIOD_OUT_LOW);
     if (IS_ERR(hx8399c_55217->reset_gpio)) {
@@ -344,15 +344,16 @@ static int hx8399c_55217_dsi_probe(struct mipi_dsi_device *dsi) {
     drm_panel_init(&hx8399c_55217->panel, &dsi->dev, &hx8399c_55217_funcs,
             DRM_MODE_CONNECTOR_DSI);
 
-    /*
-     *ret = drm_panel_of_backlight(&hx8399c_55217->panel);
-     *if (ret) 
-     *{
-     *    dev_err(&dsi->dev, "Couldn't get drm_panel_of_backlight\n");
-     *    [>return PTR_ERR(ret);<]
-     *    return ret;
-     *}
-     */
+/*
+ *    backlight = of_parse_phandle(dsi->dev.of_node, "backlight", 0);
+ *    if (backlight) {
+ *        hx8399c_55217->backlight = of_find_backlight_by_node(backlight);
+ *        of_node_put(backlight);
+ *
+ *        if (!hx8399c_55217->backlight)
+ *            return -EPROBE_DEFER;
+ *    }
+ */
 
     drm_panel_add(&hx8399c_55217->panel);
 

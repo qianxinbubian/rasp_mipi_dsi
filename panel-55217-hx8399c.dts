@@ -27,6 +27,7 @@
 				status        = "okay";
 				reg           = <0>;
                 vc4_dsi       = <&dsi1>;
+                backlight     = <&lcd0_backlight>;
                 reset-gpios   = <&gpio 25 0>;
                 enable-gpios  = <&gpio 17 0>;
                 dcdc-gpios    = <&gpio 10 0>;
@@ -98,6 +99,7 @@
             pinctrl-0 = <&i2c0_gpio44>;
         };
     };
+
 };
  
 
